@@ -1,150 +1,217 @@
-type Admin= {
-    name : string;
-    privileges : string[];
+function Logger(logString: string) {
+  return function (constructor: Function) {
+    console.log(logString);
+    console.log(`constructor`, constructor);
+  };
 }
-type Employee= {
-    name : string;
-    startDate  : Date;
-}
-
-
-//Intersection Type -Intersect this two types
-type  ElevatedEmployee = Admin & Employee
-
-const e1: ElevatedEmployee = {
-    name : "Max",
-    privileges : ["create-server"],
-    startDate : new Date(),
-}
-
-type Combinable = string | number
-type Numeric = number | string
-
-
-type Universal = Combinable & Numeric;
-
-function add(a:Combinable,b:Combinable){
- if(typeof a == "string"  || typeof b =="string"){
-     return a.toString()+b.toString()
- }
- return a+b
-
-}
-
-type UnknownEmployee = Employee | Admin
-
-function PrintEmployeeInformation(emp : UnknownEmployee){
-    if('privileges' in emp){
-        console.log(emp.privileges)
+function WithTemplate(template: string, hookId: string) { // decorator factories
+  return function <T extends { new(...args: any[]): { name: string } }>(originalConstructor: T) {
+    return class extends originalConstructor {
+      constructor(..._: any[]) {
+        super();
+        console.log(`Rendering template`);
+        const hookEl = document.getElementById(hookId);
+        // const p = new originalConstructor();
+        if (hookEl) {
+          hookEl.innerHTML = template;
+          hookEl.querySelector("h1")!.textContent = this.name;
+        }
+      }
     }
-    if('startDate' in emp){
-        console.log(emp.startDate)
+    // return function(constructor : Function){
+    //   const hookEl = document.getElementById(hookId);
+    //   if (hookEl) {
+    //           hookEl.innerHTML = template;
+    //           // hookEl.querySelector("h1")!.textContent = this.name;
+    //     }
+
+    // }
+  };
+}
+
+@Logger("LOGGING")
+@WithTemplate("<h1>My Person object</h1>", "app")
+class Person {
+  name = "Max";
+  constructor() {
+    console.log("Constructor person object");
+  }
+}
+
+const person = new Person();
+console.log(person);
+
+//..
+//Decorator for property
+function Log(target: any, propertyName: string) {
+  console.log("Property decorator");
+  console.log(target, propertyName);
+}
+
+//Decorator for accessor
+function Log2(target: any, name: string, descriptor: PropertyDescriptor) {
+  console.log("Accessor decorator!");
+  console.log(target);
+  console.log(name);
+  console.log(descriptor);
+  //here return can be accepted
+}
+
+//Decorator for method
+//If its a static method target = constructor
+//If its a instance target=prototype
+function Log3(target: any, name: string, descriptor: PropertyDescriptor) {
+  console.log("Method decorator!");
+  console.log(target);
+  console.log(name);
+  console.log(descriptor);
+  //here return can be accepted
+
+
+}
+
+//Decorator for Parameter
+function Log4(target: any, name: string, position: number) {
+  console.log("parameter decorator!");
+  console.log(target);
+  console.log(name);
+  console.log(position);
+}
+
+class Product {
+  @Log // this will execute when class Product register with javascript
+  title: string;
+  private _price: number;
+  constructor(t: string, p: number) {
+    this.title = t;
+    this._price = p;
+  }
+
+  @Log2
+  set price(val: number) {
+    // this is called accessor
+    if (val > 0) {
+      this._price = val;
+    } else {
+      throw new Error("Invalid price - should be positive");
     }
+  }
+  @Log3
+  getPriceWithTax(@Log4 tax: number) {
+    // this is a method
+    return this._price * (1 + tax);
+  }
 }
 
-PrintEmployeeInformation(e1)
+// All decorators run with out instanciating
+//All decorators run when we define class
 
-class Car {
-    drive(){
-        console.log("Driving");
+function AutoBind(_: any, _2: string, descriptor: PropertyDescriptor) {
+  const orginalMethod = descriptor.value
+  const adjDescriptor: PropertyDescriptor = {
+    configurable: true,
+    enumerable: false,
+    get() {
+      const boundFn = orginalMethod.bind(this)
+      //this refferes to what ever triggering this method
+      return boundFn;
     }
+  }
+  return adjDescriptor
 }
-class Truck {
-    drive(){
-        console.log("Truck driving")
-    }
-    loadCargo(amount : number){
-        console.log("load cargo", amount);
-    }
+//---
+
+
+
+class Printer {
+  message = "This works";
+  @AutoBind
+  showMessage() {
+    console.log(this.message)
+  }
+
 }
+const p = new Printer();
 
-type Vehicle = Car|Truck
+const button = document.querySelector("button")!;
+//p here referes to button so this.message doesnt work so we need
+//to bind it
+button.addEventListener('click', p.showMessage)
 
-const v1 = new Car()
-const v2= new Truck()
-
-function useVehicle(vehicle : Vehicle){
-    vehicle.drive()
-    if('loadCargo' in vehicle){
-        vehicle.loadCargo(1000)
-    }
+//decorators starting
+interface ValidatorConfig {
+  [property: string]: {
+    [validatableProp: string]: string[] //['required', 'positive']
+  }
 }
-
-useVehicle(v1);
-useVehicle(v2);
-
-// interface TryingTruck{
-//   drive(): void;
-//   loadCargo() : void
-// }
-
-// let object1 : TryingTruck
-
-// object1={
-//     drive(){
-//         console.log("Truck try")
-//     },
-//     loadCargo (){
-//        console.log("Cargo Driving") 
-//     }
-// }
-
-// object1.loadCargo()
-
-interface Bird {
-  type : "bird",
-  flyingSpeed : number
+const registeredValidators: ValidatorConfig = {};
+//registeredValidators = { "className" : {title : ['required', '']}}
+function Required(target: any, propName: string) {
+  registeredValidators[target.constructor.name] = {
+    ...registeredValidators[target.constructor.name],
+    [propName]:  ['required']
+  }
 }
-interface Horse {
-    type : "horse",
-    runningSpeed : number
+function PositiveNumber(target: any, propName: string) {
+  registeredValidators[target.constructor.name] = {
+    ...registeredValidators[target.constructor.name],
+    [propName]: ['positive']
+  }
 }
-
-type Animal = Bird | Horse;
-
-function moveAnimal(animal : Animal){
-    let speed;
-   switch(animal.type){
-       case "bird" : 
-          speed = animal.flyingSpeed;
+let isValid = true
+function validate(obj: any) {
+  console.log(`obj`, obj)
+  const objValidatorConfig = registeredValidators[obj.constructor.name];
+  if (!objValidatorConfig) {
+    return true;
+  }
+  for (const prop in objValidatorConfig) {
+    console.log(prop)
+    for (const validator of objValidatorConfig[prop]) {
+      switch (validator) {
+        case 'required':
+          isValid= isValid && !!obj[prop]
+          console.log(`validator`, isValid, validator)
           break;
-       case "horse" : 
-            speed = animal.runningSpeed;
-   }
+        case 'positive':
+          isValid= isValid && obj[prop] > 0;
+          console.log(`validator`, isValid, validator)
+          break;
 
+      }
+    }
+  }
+  console.log(`isValid`, isValid)
+  return isValid; 
 }
-moveAnimal({type : "bird", flyingSpeed : 10 })
-
-const paragraph = document.querySelector("p");
-//typescript here identifies it is an HTMLParagraphElement or null
-
-// const userInputElement= <HTMLInputElement>document.getElementById("message-output"); - Version1 
-// const userInputElement= document.getElementById("user-input") as HTMLInputElement;
-
-const userInputElement= document.getElementById("user-input")
+//decorators end
 
 
-
-
-
-if(userInputElement){
-    (userInputElement as HTMLInputElement).value ="Hi there";
+class Course {
+  @Required
+  title: string;
+  @PositiveNumber
+  price: number;
+  constructor(t: string, p: number) {
+    this.title = t;
+    this.price = p;
+  }
 }
-interface ErrorContainer { //{email: "Not a valid email", username : "Must start with a character"}
- [prop:string] :string // I dont know the property name and I dont know the property count
-}
-//here typescript doesnt identify its an HTML paragragh element it just tells its HTMLElement
-/** You can write the below way as well */
-// function moveAnimal(animal : Animal){
-//   if("flyingSpeed" in animal){
-//       console.log(animal.flyingSpeed)
-//   }
-// }
 
+const courseForm = document.querySelector('form')!
+courseForm.addEventListener('submit', event => {
+  event.preventDefault()
+  const titleEl = document.getElementById('title') as HTMLInputElement;
+  const priceEl = document.getElementById('price') as HTMLInputElement;
+  const title = titleEl.value;
+  const price = +priceEl.value;
+  const createdCourse = new Course(title, price);
+  if (!validate(createdCourse)) {
+    alert("Invalid input , please try again!");
+    return;
 
+  }
+  console.log(createdCourse);
 
-
-
-
-
+})
 

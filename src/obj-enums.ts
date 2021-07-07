@@ -1,13 +1,13 @@
 // this is not a good syntax
-const person:{
+const person: {
     name : string,
     age : number
-} ={
+} = {
     name : "Maximillian",
     age : 30,
     
 }
-// Its not good to explicitly define here , let typesscript infer based on the assignment 
+// Its not good to explicitly define here , let typescript infer based on the assignment 
 enum RoleIdentifier {
     ADMIN,READ_ONLY,AUTHOR
 }
@@ -15,8 +15,8 @@ enum RoleIdentifier {
 const person1:{
     name : string,
     age : number,
-    hobbies : string[],
-    role : [number,string],
+    hobbies : string[], //hobbies can hold array of strings
+    role : [number,string], // this is a tuple
     roleIdentifier : number
 } = {
     name : "Maximillian",

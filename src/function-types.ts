@@ -8,13 +8,14 @@ function printResult(num : number) {
 
 
 let combineValues
-combineValues = add(2,3)
+combineValues = add
 combineValues = 5
 
 let alone :Function
 
 alone = add;
 
+// alone=5 - throws error
 alone(5,6)
 
 alone=printResult

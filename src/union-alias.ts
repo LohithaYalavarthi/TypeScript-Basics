@@ -11,7 +11,6 @@ let Obj1 :ObjectDesc = {
     phonenumber : 33
 }
 
-console.log(Obj1)
 function combine(input1 : Combinable,input2 : Combinable,resultConversion : ConversionDescriptor){
     let result;
     if(typeof input1 === 'number' && typeof input2 === "number" || resultConversion == "asnumber"){
