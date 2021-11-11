@@ -1,6 +1,6 @@
 "use strict";
-var userInput;
-var userName;
+let userInput;
+let userName;
 userInput = 5;
 userInput = "Max";
 //unknown
@@ -9,7 +9,7 @@ if (typeof userInput == "string") {
 }
 //never logic
 function generateError(message, code) {
-    throw { message: message, errorCode: code };
+    throw { message, errorCode: code };
 }
 generateError("An error code", 500);
 function sendAnalytics(data) {

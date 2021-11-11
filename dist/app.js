@@ -14,6 +14,20 @@ function Logger(logString) {
         console.log(`constructor`, constructor);
     };
 }
+function printAll(strs) {
+    if (strs && typeof strs === "object") {
+        for (const s of strs) {
+            console.log(s);
+        }
+    }
+    else if (typeof strs === "string") {
+        console.log(strs);
+    }
+    else {
+        // do nothing
+    }
+}
+printAll(null);
 function WithTemplate(template, hookId) {
     return function (originalConstructor) {
         return class extends originalConstructor {
@@ -49,6 +63,7 @@ Person = __decorate([
 ], Person);
 const person = new Person();
 console.log(person);
+4 / 0;
 //..
 //Decorator for property
 function Log(target, propertyName) {
@@ -151,7 +166,7 @@ function PositiveNumber(target, propName) {
 }
 let isValid = true;
 function validate(obj) {
-    console.log(`obj`, obj);
+    console.log(`obj validation`, obj.constructor.name);
     const objValidatorConfig = registeredValidators[obj.constructor.name];
     if (!objValidatorConfig) {
         return true;

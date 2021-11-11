@@ -4,8 +4,21 @@ function Logger(logString: string) {
     console.log(`constructor`, constructor);
   };
 }
+function printAll(strs: string | string[] | null) {
+  if (strs && typeof strs === "object") {
+    for (const s of strs) {
+      console.log(s);
+    }
+  } else if (typeof strs === "string") {
+    console.log(strs);
+  } else {
+    // do nothing
+  }
+}
+
+printAll(null)
 function WithTemplate(template: string, hookId: string) { // decorator factories
-  return function <T extends { new(...args: any[]): { name: string } }>(originalConstructor: T) {
+  return function <T extends { new(...args: any[]): {name: string }}>(originalConstructor: T) {
     return class extends originalConstructor {
       constructor(..._: any[]) {
         super();
@@ -40,6 +53,8 @@ class Person {
 
 const person = new Person();
 console.log(person);
+
+4/0
 
 //..
 //Decorator for property
@@ -160,7 +175,7 @@ function PositiveNumber(target: any, propName: string) {
 }
 let isValid = true
 function validate(obj: any) {
-  console.log(`obj`, obj)
+  console.log(`obj validation`, obj.constructor.name)
   const objValidatorConfig = registeredValidators[obj.constructor.name];
   if (!objValidatorConfig) {
     return true;

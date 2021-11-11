@@ -30,6 +30,7 @@ class ITDepartment extends Department {
         console.log("Department :", this.name);
     }
     get mostRecentReport() {
+        //since last Report is private property we need to get this outside by getter method.
         if (this.lastReport) {
             return this.lastReport;
         }
